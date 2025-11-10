@@ -1,21 +1,17 @@
 <?php
 declare(strict_types=1);
 session_start(); 
-
 if (!isset($_SESSION['loggedin'])) {
     header('Location: logowanie.php');
     exit();
 }
-
 $homeDir = $_SESSION['home_dir'];
 $currentDir = $homeDir;
-
 // jeśli w GET podano podkatalog
 if (!empty($_GET['dir'])) {
     $subDir = basename($_GET['dir']); // zabezpieczenie
     $currentDir .= DIRECTORY_SEPARATOR . $subDir;
 }
-
 // odczyt zawartości katalogu
 $itemsList = [];
 if (is_dir($currentDir)) {
@@ -35,7 +31,7 @@ if (is_dir($currentDir)) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Żurek - Dysk użytkownika</title>
+    <title>Dysk użytkownika</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="twoj_css.css">
@@ -53,18 +49,34 @@ if (is_dir($currentDir)) {
                 <h2>Aktualny katalog: <?= htmlspecialchars($currentDir === $homeDir ? 'Katalog macierzysty' : basename($currentDir)) ?></h2>
                 <!-- Level Up -->
                 <?php if ($currentDir !== $homeDir): ?>
-                    <a href="index.php" class="btn btn-secondary mb-3">⬆ Powrót do katalogu macierzystego</a>
+                    <a href="index.php" class="btn btn-secondary mb-3">
+                        <img src="media/menu_icons/level_up.png" alt="Powrót" style="width:20px; height:20px; margin-right:5px;">
+                        Powrót do katalogu macierzystego
+                    </a>
                 <?php endif; ?>
                 <!-- Tworzenie katalogu tylko w katalogu macierzystym -->
                 <?php if ($currentDir === $homeDir): ?>
-                    <form method="POST" action="create_dir.php" class="mb-3">
-                        <div class="input-group">
-                            <input type="text" name="new_dir" class="form-control" placeholder="Nazwa nowego katalogu" required>
-                            <button type="submit" class="btn btn-primary">Utwórz katalog</button>
-                        </div>
-                    </form>
+                <form method="POST" action="create_dir.php" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" name="new_dir" class="form-control" placeholder="Nazwa nowego katalogu" required>
+                        <button type="submit" class="btn btn-primary" title="Utwórz katalog">
+                            <img src="media/menu_icons/folder.svg" alt="Folder" style="width:24px; height:24px;">
+                        </button>
+                    </div>
+                </form>
                 <?php endif; ?>
                 <h2>Zawartość katalogu:</h2>
+                <!-- Upload pliku -->
+                <form action="upload.php" method="post" enctype="multipart/form-data" class="mb-3">
+                    <div class="input-group">
+                        <input type="file" name="fileToUpload" class="form-control" required>
+                        <!-- WAŻNE -->
+                        <input type="hidden" name="current_dir" value="<?= htmlspecialchars($currentDir) ?>">
+                        <button type="submit" class="btn btn-success" title="Upload">
+                            <img src="media/menu_icons/cloud-upload.svg" alt="Upload" style="width:24px; height:24px;">
+                        </button>
+                    </div>
+                </form>
                 <?php if (empty($itemsList)): ?>
                     <p>Brak plików i katalogów.</p>
                 <?php else: ?>
@@ -78,7 +90,7 @@ if (is_dir($currentDir)) {
                                 <?php else: ?>
                                     <span>📄 <?= htmlspecialchars($item['name']) ?></span>
                                 <?php endif; ?>
-                                <a href="delete.php?file=<?= urlencode($item['name']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Na pewno usunąć?')">🗑️</a>
+                                <a href="delete.php?file=<?= urlencode(str_replace($homeDir . DIRECTORY_SEPARATOR, '', $currentDir . DIRECTORY_SEPARATOR . $item['name'])) ?>&dir=<?= urlencode(str_replace(realpath($homeDir) . DIRECTORY_SEPARATOR, '', realpath($currentDir))) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Na pewno usunąć?')">🗑️</a>
                             </li>
                         <?php endforeach; ?>
                     </ul>
