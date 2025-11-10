@@ -35,6 +35,11 @@ else
     if($rekord['password']==$pass)
     {
         $_SESSION['loggedin'] = true;
+
+        $_SESSION['username'] = $user;
+        
+        // ustawiamy katalog macierzysty
+        $_SESSION['home_dir'] = __DIR__ . "/users/" . $user;
         mysqli_query($link, "INSERT INTO goscieportalu (username, success, attempt_time) VALUES ('$user', 1, NOW())");
         header('Location: index.php');
     }
