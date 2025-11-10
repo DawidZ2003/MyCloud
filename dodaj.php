@@ -17,6 +17,11 @@ if ($user === '' || $pass === '' || $pass2 === '') {
     mysqli_close($link);
     exit();
 }
+// walidacja loginu — tylko litery, cyfry, podkreślenie, myślnik
+if (!preg_match('/^[a-zA-Z0-9_-]+$/', $user)) {
+    echo "Login zawiera niedozwolone znaki! Dozwolone: litery, cyfry, '_' i '-'.";
+    exit();
+}
 $result = mysqli_query($link, "SELECT * FROM users WHERE username='$user'");
 if (mysqli_num_rows($result) > 0) 
 {
@@ -33,6 +38,15 @@ if($pass!==$pass2)
 else
 {
     mysqli_query($link, "INSERT INTO users (username, password) VALUES ('$user', '$pass'); ");
+    // tworzenie katalogu macierzystego
+    $usersRoot = __DIR__ . "/users";
+    if (!is_dir($usersRoot)) {
+        mkdir($usersRoot, 0777, true);
+    }
+    $userDir = $usersRoot . "/" . $user;
+    if (!is_dir($userDir)) {
+        mkdir($userDir, 0777, true);
+    }
     header('Location: index.php');
     exit();
 }
